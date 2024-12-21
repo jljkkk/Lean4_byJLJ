@@ -1,0 +1,23 @@
+Content-Length: 1003
+
+{"params":{"workspaceFolders":[{"uri":"file:///d%3A/Lean/Lean4_byJLJ","name":"Lean4_byJLJ"}],"trace":"off","rootUri":"file:///d%3A/Lean/Lean4_byJLJ","processId":1428,"initializationOptions":{"hasWidgets":true,"editDelay":200},"clientInfo":{"version":"1.95.2","name":"Visual Studio Code"},"capabilities":{"workspace":{"workspaceEdit":{"resourceOperations":["create","rename","delete"],"documentChanges":true,"changeAnnotationSupport":{"groupsOnLabel":true}},"applyEdit":true},"window":{"showDocument":{"support":true}},"textDocument":{"completion":{"completionItem":{"insertReplaceSupport":true}},"codeAction":{"resolveSupport":{"properties":["edit"]},"isPreferredSupport":true,"honorsChangeAnnotations":false,"dynamicRegistration":true,"disabledSupport":true,"dataSupport":true,"codeActionLiteralSupport":{"codeActionKind":{"valueSet":["","quickfix","refactor","refactor.extract","refactor.inline","refactor.rewrite","source","source.organizeImports"]}}}}}},"method":"initialize","jsonrpc":"2.0","id":0}Content-Length: 234
+
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean","text":"def hello := \"world\"\n","languageId":"lean"},"dependencyBuildMode":"always"},"method":"textDocument/didOpen","jsonrpc":"2.0"}Content-Length: 151
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":1}Content-Length: 266
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":2}Content-Length: 149
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":3}Content-Length: 151
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":4}Content-Length: 156
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":5}Content-Length: 231
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":1,"character":0}}},"method":"textDocument/semanticTokens/range","jsonrpc":"2.0","id":6}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":0}Content-Length: 156
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":7}Content-Length: 33
+
+{"method":"exit","jsonrpc":"2.0"}

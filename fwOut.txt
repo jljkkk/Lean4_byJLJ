@@ -1,0 +1,39 @@
+Content-Length: 248
+
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"processing":[{"range":{"start":{"line":0,"character":0},"end":{"line":1,"character":0}},"kind":1}]},"method":"$/lean/fileProgress","jsonrpc":"2.0"}Content-Length: 160
+
+{"params":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean","diagnostics":[]},"method":"textDocument/publishDiagnostics","jsonrpc":"2.0"}Content-Length: 68
+
+{"method":"workspace/semanticTokens/refresh","jsonrpc":"2.0","id":0}Content-Length: 160
+
+{"params":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean","diagnostics":[]},"method":"textDocument/publishDiagnostics","jsonrpc":"2.0"}Content-Length: 45
+
+{"result":{"data":[]},"jsonrpc":"2.0","id":5}Content-Length: 90
+
+{"params":{"version":1,"references":{}},"method":"$/lean/ileanInfoUpdate","jsonrpc":"2.0"}Content-Length: 36
+
+{"result":[],"jsonrpc":"2.0","id":2}Content-Length: 248
+
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"processing":[{"range":{"start":{"line":0,"character":0},"end":{"line":1,"character":0}},"kind":1}]},"method":"$/lean/fileProgress","jsonrpc":"2.0"}Content-Length: 249
+
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"processing":[{"range":{"start":{"line":0,"character":13},"end":{"line":1,"character":0}},"kind":1}]},"method":"$/lean/fileProgress","jsonrpc":"2.0"}Content-Length: 249
+
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"processing":[{"range":{"start":{"line":0,"character":20},"end":{"line":1,"character":0}},"kind":1}]},"method":"$/lean/fileProgress","jsonrpc":"2.0"}Content-Length: 54
+
+{"result":{"data":[0,0,3,0,0]},"jsonrpc":"2.0","id":6}Content-Length: 181
+
+{"params":{"version":1,"references":{"{\"c\":{\"n\":\"hello\",\"m\":\"Lean4ByJLJ.Basic\"}}":{"usages":[],"definition":[0,4,0,9]}}},"method":"$/lean/ileanInfoUpdate","jsonrpc":"2.0"}Content-Length: 36
+
+{"result":[],"jsonrpc":"2.0","id":3}Content-Length: 219
+
+{"result":[{"selectionRange":{"start":{"line":0,"character":4},"end":{"line":0,"character":9}},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":20}},"name":"hello","kind":6}],"jsonrpc":"2.0","id":1}Content-Length: 219
+
+{"result":[{"selectionRange":{"start":{"line":0,"character":4},"end":{"line":0,"character":9}},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":20}},"name":"hello","kind":6}],"jsonrpc":"2.0","id":4}Content-Length: 90
+
+{"params":{"version":1,"references":{}},"method":"$/lean/ileanInfoUpdate","jsonrpc":"2.0"}Content-Length: 164
+
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Basic.lean"},"processing":[]},"method":"$/lean/fileProgress","jsonrpc":"2.0"}Content-Length: 180
+
+{"params":{"version":1,"references":{"{\"c\":{\"n\":\"hello\",\"m\":\"Lean4ByJLJ.Basic\"}}":{"usages":[],"definition":[0,4,0,9]}}},"method":"$/lean/ileanInfoFinal","jsonrpc":"2.0"}Content-Length: 54
+
+{"result":{"data":[0,0,3,0,0]},"jsonrpc":"2.0","id":7}
