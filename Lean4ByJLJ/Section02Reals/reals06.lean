@@ -1,4 +1,6 @@
 import Mathlib.Tactic -- imports all the Lean tactics
+import Lean4ByJLJ.Section02Reals.reals05
+
 
 def TendsTo (a : ℕ → ℝ) (t : ℝ) : Prop :=
   ∀ ε > 0, ∃ B : ℕ, ∀ n, B ≤ n → |a n - t| < ε
@@ -244,69 +246,7 @@ theorem tendsTo_mul (a b : ℕ → ℝ) (t u : ℝ) (ha : TendsTo a t) (hb : Ten
     have h : ∀ n, a n * b n - t * u = (a n - t) * (b n - u) + t * (b n - u) + (a n - t) * u := by
       intro n
       ring
-    rw [tendsTo_def] at *
-    intro ε hε
-    have hu : (3*(|u| + 1)) > 0 := by linarith [abs_nonneg u]
-    have hε_div_u : (ε / (3 * (|u| + 1))) > 0 := div_pos hε hu
-    specialize ha (ε / (3 * (|u| + 1))) (by linarith)
-    have ht : (3*(|t| + 1)) > 0 := by linarith [abs_nonneg t]
-    have hε_div_t : (ε / (3 * (|t| + 1))) > 0 := div_pos hε ht
-    specialize hb (ε / (3 * (|t| + 1))) (by linarith)
-    cases' ha with X haX
-    cases' hb with Y hbY
-    use max X Y
-    intro n hn
-    rw [max_le_iff] at hn
-    specialize haX n hn.1
-    specialize hbY n hn.2
-    rw [sub_zero] at *
-    have h1 : |a n * b n - t * u| = |(a n - t) * (b n - u) + t * (b n - u) + (a n - t) * u| := by
-     rw [h n]
-    have h2 : |(a n - t) * (b n - u)| = |a n - t| * |b n - u| := by
-      exact abs_mul (a n - t) (b n - u)
-    have h3 : |t * (b n - u)| = |t| * |b n - u| := abs_mul t (b n - u)
-    have h4 : |(a n - t) * u| = |a n - t| * |u| := abs_mul (a n - t) u
-    have h5 : |(a n - t) * (b n - u)| < (ε / (3 * (|u| + 1))) * (ε / (3 * (|t| + 1))) := by
-     rw [abs_mul]
-     apply mul_lt_mul''
-     exact haX
-     exact hbY
-     linarith [abs_nonneg (a n - t)]
-     linarith [abs_nonneg (b n - u)]
-    have h6 : |t * (b n - u)| ≤ |t| * (ε / (3 * (|t| + 1))) := by
-     rw [abs_mul]
-     apply mul_le_mul_of_nonneg_left
-     linarith
-     linarith [abs_nonneg t]
 
-    have h7 : |(a n - t) * u| ≤ (ε / (3 * (|u| + 1))) * |u| := by
-      rw [abs_mul]
-      apply mul_le_mul
-      linarith
-      linarith
-      linarith [abs_nonneg u]
-      linarith
-    rw [h n]
-    have h8 : |(a n - t) * (b n - u) + t * (b n - u)| ≤ |(a n - t) * (b n - u)| + |t * (b n - u)| := by
-      apply abs_add_le
-    have h9 : |(a n - t) * (b n - u) + t * (b n - u) + (a n - t) * u| ≤ |(a n - t) * (b n - u) + t * (b n - u)| + |(a n - t) * u| := by
-      apply abs_add_le
-    have h10: |(a n - t) * (b n - u) + t * (b n - u) + (a n - t) * u| ≤ |(a n - t) * (b n - u)| + |t * (b n - u)| + |(a n - t) * u| := by
-      linarith [h8, h9]
-    have h11: ε / (3 * (|u| + 1)) * (ε / (3 * (|t| + 1))) + |t| * (ε / (3 * (|t| + 1))) + ε / (3 * (|u| + 1)) * |u| < ε := by
-      have h11_1 : ε / (3 * (|u| + 1)) * (ε / (3 * (|t| + 1))) = (ε * ε) / ((3 * (|u| + 1)) * (3 * (|t| + 1))) := by
-       field_simp [abs_nonneg u, abs_nonneg t]
-      have h11_2 : (ε * ε) / ((3 * (|u| + 1)) * (3 * (|t| + 1))) = ε * (ε / (3 * (|u| + 1) * (|t| + 1))) := by
-       field_simp [abs_nonneg u, abs_nonneg t]
-      have h11_3 : |t| * (ε / (3 * (|t| + 1))) = (|t| * ε) / (3 * (|t| + 1)) := by ring
-      have h11_4 : ε / (3 * (|u| + 1)) * |u| = (|u| * ε) / (3 * (|u| + 1)) := by ring
-      have h11_5 : (ε * (ε / (3 * (|u| + 1) * (|t| + 1)))) + (|t| * ε) / (3 * (|t| + 1)) + (|u| * ε) / (3 * (|u| + 1)) < ε := by
-       field_simp [abs_nonneg u, abs_nonneg t]
-
-      rw [h11_1,h11_2,h11_3,h11_4]
-      exact h11_5
-
-    linarith [h5,h6,h7,h10,h11]
 
 
 
@@ -314,5 +254,39 @@ theorem tendsTo_mul (a b : ℕ → ℝ) (t u : ℝ) (ha : TendsTo a t) (hb : Ten
 -- something we never used!
 /-- A sequence has at most one limit. -/
 theorem tendsTo_unique (a : ℕ → ℝ) (s t : ℝ) (hs : TendsTo a s) (ht : TendsTo a t) : s = t := by
-  by_contra h
+  have h : TendsTo (fun n ↦ a n - a n) (s - t) := by
+    rw [tendsTo_def] at *
+    intro ε hε
+    specialize ht (ε / 2) (by linarith)
+    cases' ht with X hX
+    obtain ⟨Y, hY⟩ := hs (ε / 2) (by linarith)
+    use max X Y
+    intro n hn
+    specialize hX n (le_of_max_le_left hn)
+    specialize hY n (le_of_max_le_right hn)
+    rw [abs_lt] at *
+    constructor <;>
+      linarith
+
   rw [tendsTo_def] at *
+  by_contra hcontra
+  have h' : s ≠ t := hcontra
+  obtain ⟨ε, hε⟩ : ∃ ε > 0, ε ≤ |s - t| := by
+    have hd : |s-t| > 0 := by
+      by_contra hd1
+      simp at hd1
+      apply h'
+      linarith
+    use |s-t|/2
+    constructor
+    linarith
+    linarith
+  have hε' : ε > 0 := hε.left
+  specialize h ε (by linarith)
+  cases' h with X hX
+  simp at hX
+  have hX' : X ≤ X := by linarith
+  specialize hX X hX'
+  have hε'' : ε ≤ |s - t| := hε.right
+  rw [abs_sub_comm] at hX
+  linarith [hε'', hX]

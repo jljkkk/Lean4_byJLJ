@@ -1,7 +1,471 @@
 Content-Length: 1003
 
-{"params":{"workspaceFolders":[{"uri":"file:///d%3A/Lean/Lean4_byJLJ","name":"Lean4_byJLJ"}],"trace":"off","rootUri":"file:///d%3A/Lean/Lean4_byJLJ","processId":1428,"initializationOptions":{"hasWidgets":true,"editDelay":200},"clientInfo":{"version":"1.95.2","name":"Visual Studio Code"},"capabilities":{"workspace":{"workspaceEdit":{"resourceOperations":["create","rename","delete"],"documentChanges":true,"changeAnnotationSupport":{"groupsOnLabel":true}},"applyEdit":true},"window":{"showDocument":{"support":true}},"textDocument":{"completion":{"completionItem":{"insertReplaceSupport":true}},"codeAction":{"resolveSupport":{"properties":["edit"]},"isPreferredSupport":true,"honorsChangeAnnotations":false,"dynamicRegistration":true,"disabledSupport":true,"dataSupport":true,"codeActionLiteralSupport":{"codeActionKind":{"valueSet":["","quickfix","refactor","refactor.extract","refactor.inline","refactor.rewrite","source","source.organizeImports"]}}}}}},"method":"initialize","jsonrpc":"2.0","id":0}Content-Length: 12216
+{"params":{"workspaceFolders":[{"uri":"file:///d%3A/Lean/Lean4_byJLJ","name":"Lean4_byJLJ"}],"trace":"off","rootUri":"file:///d%3A/Lean/Lean4_byJLJ","processId":2368,"initializationOptions":{"hasWidgets":true,"editDelay":200},"clientInfo":{"version":"1.96.2","name":"Visual Studio Code"},"capabilities":{"workspace":{"workspaceEdit":{"resourceOperations":["create","rename","delete"],"documentChanges":true,"changeAnnotationSupport":{"groupsOnLabel":true}},"applyEdit":true},"window":{"showDocument":{"support":true}},"textDocument":{"completion":{"completionItem":{"insertReplaceSupport":true}},"codeAction":{"resolveSupport":{"properties":["edit"]},"isPreferredSupport":true,"honorsChangeAnnotations":false,"dynamicRegistration":true,"disabledSupport":true,"dataSupport":true,"codeActionLiteralSupport":{"codeActionKind":{"valueSet":["","quickfix","refactor","refactor.extract","refactor.inline","refactor.rewrite","source","source.organizeImports"]}}}}}},"method":"initialize","jsonrpc":"2.0","id":0}Content-Length: 8039
 
-{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/.lake/packages/mathlib/Mathlib/Algebra/Order/Group/Unbundled/Abs.lean","text":"/-\nCopyright (c) 2016 Jeremy Avigad. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\nAuthors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl\n-/\nimport Mathlib.Algebra.Group.Even\nimport Mathlib.Algebra.Order.Group.Lattice\n\n/-!\n# Absolute values in ordered groups\n\nThe absolute value of an element in a group which is also a lattice is its supremum with its\nnegation. This generalizes the usual absolute value on real numbers (`|x| = max x (-x)`).\n\n## Notations\n\n- `|a|`: The *absolute value* of an element `a` of an additive lattice ordered group\n- `|a|ₘ`: The *absolute value* of an element `a` of a multiplicative lattice ordered group\n-/\n\nopen Function\n\nvariable {α : Type*}\n\nsection Lattice\nvariable [Lattice α]\n\nsection Group\nvariable [Group α] {a b : α}\n\n/-- `mabs a` is the absolute value of `a`. -/\n@[to_additive \"`abs a` is the absolute value of `a`\"] def mabs (a : α) : α := a ⊔ a⁻¹\n\n@[inherit_doc mabs]\nmacro:max atomic(\"|\" noWs) a:term noWs \"|ₘ\" : term => `(mabs $a)\n\n@[inherit_doc abs]\nmacro:max atomic(\"|\" noWs) a:term noWs \"|\" : term => `(abs $a)\n\n/-- Unexpander for the notation `|a|ₘ` for `mabs a`.\nTries to add discretionary parentheses in unparseable cases. -/\n@[app_unexpander abs]\ndef mabs.unexpander : Lean.PrettyPrinter.Unexpander\n  | `($_ $a) =>\n    match a with\n    | `(|$_|ₘ) | `(-$_) => `(|($a)|ₘ)\n    | _ => `(|$a|ₘ)\n  | _ => throw ()\n\n/-- Unexpander for the notation `|a|` for `abs a`.\nTries to add discretionary parentheses in unparseable cases. -/\n@[app_unexpander abs]\ndef abs.unexpander : Lean.PrettyPrinter.Unexpander\n  | `($_ $a) =>\n    match a with\n    | `(|$_|) | `(-$_) => `(|($a)|)\n    | _ => `(|$a|)\n  | _ => throw ()\n\n@[to_additive] lemma mabs_le' : |a|ₘ ≤ b ↔ a ≤ b ∧ a⁻¹ ≤ b := sup_le_iff\n\n@[to_additive] lemma le_mabs_self (a : α) : a ≤ |a|ₘ := le_sup_left\n\n@[to_additive] lemma inv_le_mabs (a : α) : a⁻¹ ≤ |a|ₘ := le_sup_right\n\n@[to_additive] lemma mabs_le_mabs (h₀ : a ≤ b) (h₁ : a⁻¹ ≤ b) : |a|ₘ ≤ |b|ₘ :=\n  (mabs_le'.2 ⟨h₀, h₁⟩).trans (le_mabs_self b)\n\n@[to_additive (attr := simp)] lemma mabs_inv (a : α) : |a⁻¹|ₘ = |a|ₘ := by simp [mabs, sup_comm]\n\n@[to_additive] lemma mabs_div_comm (a b : α) : |a / b|ₘ = |b / a|ₘ := by rw [← mabs_inv, inv_div]\n\nvariable [MulLeftMono α]\n\n@[to_additive] lemma mabs_of_one_le (h : 1 ≤ a) : |a|ₘ = a :=\n  sup_eq_left.2 <| (inv_le_one'.2 h).trans h\n\n@[to_additive] lemma mabs_of_one_lt (h : 1 < a) : |a|ₘ = a := mabs_of_one_le h.le\n\n@[to_additive] lemma mabs_of_le_one (h : a ≤ 1) : |a|ₘ = a⁻¹ :=\n  sup_eq_right.2 <| h.trans (one_le_inv'.2 h)\n\n@[to_additive] lemma mabs_of_lt_one (h : a < 1) : |a|ₘ = a⁻¹ := mabs_of_le_one h.le\n\n@[to_additive] lemma mabs_le_mabs_of_one_le (ha : 1 ≤ a) (hab : a ≤ b) : |a|ₘ ≤ |b|ₘ := by\n  rwa [mabs_of_one_le ha, mabs_of_one_le (ha.trans hab)]\n\nattribute [gcongr] abs_le_abs_of_nonneg\n\n@[to_additive (attr := simp)] lemma mabs_one : |(1 : α)|ₘ = 1 := mabs_of_one_le le_rfl\n\nvariable [MulRightMono α]\n\n@[to_additive (attr := simp) abs_nonneg] lemma one_le_mabs (a : α) : 1 ≤ |a|ₘ := by\n  apply pow_two_semiclosed _\n  rw [mabs, pow_two, mul_sup,  sup_mul, ← pow_two, inv_mul_cancel, sup_comm, ← sup_assoc]\n  apply le_sup_right\n\n@[to_additive (attr := simp)] lemma mabs_mabs (a : α) : |(|a|ₘ)|ₘ = |a|ₘ :=\n  mabs_of_one_le <| one_le_mabs a\n\nend Group\n\nsection CommGroup\nvariable [CommGroup α] [MulLeftMono α]\n\n-- Banasiak Proposition 2.12, Zaanen 2nd lecture\n/-- The absolute value satisfies the triangle inequality. -/\n@[to_additive \"The absolute value satisfies the triangle inequality.\"]\nlemma mabs_mul_le (a b : α) : |a * b|ₘ ≤ |a|ₘ * |b|ₘ := by\n  apply sup_le\n  · exact mul_le_mul' (le_mabs_self a) (le_mabs_self b)\n  · rw [mul_inv]\n    exact mul_le_mul' (inv_le_mabs _) (inv_le_mabs _)\n\n@[to_additive]\nlemma mabs_mabs_div_mabs_le (a b : α) : |(|a|ₘ / |b|ₘ)|ₘ ≤ |a / b|ₘ := by\n  rw [mabs, sup_le_iff]\n  constructor\n  · apply div_le_iff_le_mul.2\n    convert mabs_mul_le (a / b) b\n    rw [div_mul_cancel]\n  · rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, mabs_div_comm]\n    convert mabs_mul_le (b / a) a\n    · rw [div_mul_cancel]\n\n@[to_additive] lemma sup_div_inf_eq_mabs_div (a b : α) : (a ⊔ b) / (a ⊓ b) = |b / a|ₘ := by\n  simp_rw [sup_div, div_inf, div_self', sup_comm, sup_sup_sup_comm, sup_idem]\n  rw [← inv_div, sup_comm (b := _ / _), ← mabs, sup_eq_left]\n  exact one_le_mabs _\n\n@[to_additive two_nsmul_sup_eq_add_add_abs_sub]\nlemma sup_sq_eq_mul_mul_mabs_div (a b : α) : (a ⊔ b) ^ 2 = a * b * |b / a|ₘ := by\n  rw [← inf_mul_sup a b, ← sup_div_inf_eq_mabs_div, div_eq_mul_inv, ← mul_assoc, mul_comm,\n     mul_assoc, ← pow_two, inv_mul_cancel_left]\n\n@[to_additive two_nsmul_inf_eq_add_sub_abs_sub]\nlemma inf_sq_eq_mul_div_mabs_div (a b : α) : (a ⊓ b) ^ 2 = a * b / |b / a|ₘ := by\n  rw [← inf_mul_sup a b, ← sup_div_inf_eq_mabs_div, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev,\n    inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two]\n\n-- See, e.g. Zaanen, Lectures on Riesz Spaces\n-- 3rd lecture\n@[to_additive]\nlemma mabs_div_sup_mul_mabs_div_inf (a b c : α) :\n    |(a ⊔ c) / (b ⊔ c)|ₘ * |(a ⊓ c) / (b ⊓ c)|ₘ = |a / b|ₘ := by\n  letI : DistribLattice α := CommGroup.toDistribLattice α\n  calc\n    |(a ⊔ c) / (b ⊔ c)|ₘ * |(a ⊓ c) / (b ⊓ c)|ₘ =\n        (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * |(a ⊓ c) / (b ⊓ c)|ₘ := by\n        rw [sup_div_inf_eq_mabs_div]\n    _ = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * ((b ⊓ c ⊔ a ⊓ c) / (b ⊓ c ⊓ (a ⊓ c))) := by\n        rw [sup_div_inf_eq_mabs_div (b ⊓ c) (a ⊓ c)]\n    _ = (b ⊔ a ⊔ c) / (b ⊓ a ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) := by\n        rw [← sup_inf_right, ← inf_sup_right, sup_assoc, sup_comm c (a ⊔ c), sup_right_idem,\n          sup_assoc, inf_assoc, inf_comm c (a ⊓ c), inf_right_idem, inf_assoc]\n    _ = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) / ((b ⊓ a ⊔ c) * (b ⊓ a ⊓ c)) := by rw [div_mul_div_comm]\n    _ = (b ⊔ a) * c / ((b ⊓ a) * c) := by\n        rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]\n    _ = (b ⊔ a) / (b ⊓ a) := by\n        rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left, ← div_eq_mul_inv]\n    _ = |a / b|ₘ := by rw [sup_div_inf_eq_mabs_div]\n\n@[to_additive] lemma mabs_sup_div_sup_le_mabs (a b c : α) : |(a ⊔ c) / (b ⊔ c)|ₘ ≤ |a / b|ₘ := by\n  apply le_of_mul_le_of_one_le_left _ (one_le_mabs _); rw [mabs_div_sup_mul_mabs_div_inf]\n\n@[to_additive] lemma mabs_inf_div_inf_le_mabs (a b c : α) : |(a ⊓ c) / (b ⊓ c)|ₘ ≤ |a / b|ₘ := by\n  apply le_of_mul_le_of_one_le_right _ (one_le_mabs _); rw [mabs_div_sup_mul_mabs_div_inf]\n\n-- Commutative case, Zaanen, 3rd lecture\n-- For the non-commutative case, see Birkhoff Theorem 19 (27)\n@[to_additive Birkhoff_inequalities]\nlemma m_Birkhoff_inequalities (a b c : α) :\n    |(a ⊔ c) / (b ⊔ c)|ₘ ⊔ |(a ⊓ c) / (b ⊓ c)|ₘ ≤ |a / b|ₘ :=\n  sup_le (mabs_sup_div_sup_le_mabs a b c) (mabs_inf_div_inf_le_mabs a b c)\n\nend CommGroup\nend Lattice\n\nsection LinearOrder\nvariable [Group α] [LinearOrder α] {a b : α}\n\n@[to_additive] lemma mabs_choice (x : α) : |x|ₘ = x ∨ |x|ₘ = x⁻¹ := max_choice _ _\n\n@[to_additive] lemma le_mabs : a ≤ |b|ₘ ↔ a ≤ b ∨ a ≤ b⁻¹ := le_max_iff\n\n@[to_additive] lemma mabs_eq_max_inv : |a|ₘ = max a a⁻¹ := rfl\n\n@[to_additive] lemma lt_mabs : a < |b|ₘ ↔ a < b ∨ a < b⁻¹ := lt_max_iff\n\n@[to_additive] lemma mabs_by_cases (P : α → Prop) (h1 : P a) (h2 : P a⁻¹) : P |a|ₘ :=\n  sup_ind _ _ h1 h2\n\n@[to_additive] lemma eq_or_eq_inv_of_mabs_eq (h : |a|ₘ = b) : a = b ∨ a = b⁻¹ := by\n  simpa only [← h, eq_comm (a := |a|ₘ), inv_eq_iff_eq_inv] using mabs_choice a\n\n@[to_additive] lemma mabs_eq_mabs : |a|ₘ = |b|ₘ ↔ a = b ∨ a = b⁻¹ := by\n  refine ⟨fun h ↦ ?_, by rintro (h | h) <;> simp [h, abs_neg]⟩\n  obtain rfl | rfl := eq_or_eq_inv_of_mabs_eq h <;>\n    simpa only [inv_eq_iff_eq_inv (a := |b|ₘ), inv_inv, inv_inj, or_comm] using mabs_choice b\n\n@[to_additive] lemma isSquare_mabs : IsSquare |a|ₘ ↔ IsSquare a :=\n  mabs_by_cases (IsSquare · ↔ _) Iff.rfl isSquare_inv\n\n@[to_additive] lemma lt_of_mabs_lt : |a|ₘ < b → a < b := (le_mabs_self _).trans_lt\n\nvariable [MulLeftMono α] {a b : α}\n\n@[to_additive (attr := simp) abs_pos] lemma one_lt_mabs : 1 < |a|ₘ ↔ a ≠ 1 := by\n  obtain ha | rfl | ha := lt_trichotomy a 1\n  · simp [mabs_of_lt_one ha, neg_pos, ha.ne, ha]\n  · simp\n  · simp [mabs_of_one_lt ha, ha, ha.ne']\n\n@[to_additive abs_pos_of_pos] lemma one_lt_mabs_pos_of_one_lt (h : 1 < a) : 1 < |a|ₘ :=\n  one_lt_mabs.2 h.ne'\n\n@[to_additive abs_pos_of_neg] lemma one_lt_mabs_of_lt_one (h : a < 1) : 1 < |a|ₘ :=\n  one_lt_mabs.2 h.ne\n\n@[to_additive] lemma inv_mabs_le (a : α) : |a|ₘ⁻¹ ≤ a := by\n  obtain h | h := le_total 1 a\n  · simpa [mabs_of_one_le h] using (inv_le_one'.2 h).trans h\n  · simp [mabs_of_le_one h]\n\n@[to_additive add_abs_nonneg] lemma one_le_mul_mabs (a : α) : 1 ≤ a * |a|ₘ := by\n  rw [← mul_inv_cancel a]; exact mul_le_mul_left' (inv_le_mabs a) _\n\n@[to_additive] lemma inv_mabs_le_inv (a : α) : |a|ₘ⁻¹ ≤ a⁻¹ := by simpa using inv_mabs_le a⁻¹\n\nvariable [MulRightMono α]\n\n@[to_additive] lemma mabs_ne_one : |a|ₘ ≠ 1 ↔ a ≠ 1 :=\n  (one_le_mabs a).gt_iff_ne.symm.trans one_lt_mabs\n\n@[to_additive (attr := simp)] lemma mabs_eq_one : |a|ₘ = 1 ↔ a = 1 := not_iff_not.1 mabs_ne_one\n\n@[to_additive (attr := simp) abs_nonpos_iff] lemma mabs_le_one : |a|ₘ ≤ 1 ↔ a = 1 :=\n  (one_le_mabs a).le_iff_eq.trans mabs_eq_one\n\n@[to_additive] lemma mabs_le_mabs_of_le_one (ha : a ≤ 1) (hab : b ≤ a) : |a|ₘ ≤ |b|ₘ := by\n  rw [mabs_of_le_one ha, mabs_of_le_one (hab.trans ha)]; exact inv_le_inv_iff.mpr hab\n\n@[to_additive] lemma mabs_lt : |a|ₘ < b ↔ b⁻¹ < a ∧ a < b :=\n  max_lt_iff.trans <| and_comm.trans <| by rw [inv_lt']\n\n@[to_additive] lemma inv_lt_of_mabs_lt (h : |a|ₘ < b) : b⁻¹ < a := (mabs_lt.mp h).1\n\n@[to_additive] lemma max_div_min_eq_mabs' (a b : α) : max a b / min a b = |a / b|ₘ := by\n  rcases le_total a b with ab | ba\n  · rw [max_eq_right ab, min_eq_left ab, mabs_of_le_one, inv_div]\n    rwa [div_le_one']\n  · rw [max_eq_left ba, min_eq_right ba, mabs_of_one_le]\n    rwa [one_le_div']\n\n@[to_additive] lemma max_div_min_eq_mabs (a b : α) : max a b / min a b = |b / a|ₘ := by\n  rw [mabs_div_comm, max_div_min_eq_mabs']\n\nend LinearOrder\n\nnamespace LatticeOrderedAddCommGroup\nvariable [Lattice α] [AddCommGroup α] {s t : Set α}\n\n/-- A set `s` in a lattice ordered group is *solid* if for all `x ∈ s` and all `y ∈ α` such that\n`|y| ≤ |x|`, then `y ∈ s`. -/\ndef IsSolid (s : Set α) : Prop := ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, |y| ≤ |x| → y ∈ s\n\n/-- The solid closure of a subset `s` is the smallest superset of `s` that is solid. -/\ndef solidClosure (s : Set α) : Set α := {y | ∃ x ∈ s, |y| ≤ |x|}\n\nlemma isSolid_solidClosure (s : Set α) : IsSolid (solidClosure s) :=\n  fun _ ⟨y, hy, hxy⟩ _ hzx ↦ ⟨y, hy, hzx.trans hxy⟩\n\nlemma solidClosure_min (hst : s ⊆ t) (ht : IsSolid t) : solidClosure s ⊆ t :=\n  fun _ ⟨_, hy, hxy⟩ ↦ ht (hst hy) hxy\n\nend LatticeOrderedAddCommGroup\n\nnamespace Pi\nvariable {ι : Type*} {α : ι → Type*} [∀ i, AddGroup (α i)] [∀ i, Lattice (α i)]\n\n@[simp] lemma abs_apply (f : ∀ i, α i) (i : ι) : |f| i = |f i| := rfl\n\nlemma abs_def (f : ∀ i, α i) : |f| = fun i ↦ |f i| := rfl\n\nend Pi\n","languageId":"lean"},"dependencyBuildMode":"always"},"method":"textDocument/didOpen","jsonrpc":"2.0"}Content-Length: 33
+{"params":{"textDocument":{"version":1,"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","text":"import Mathlib.Tactic -- imports all the Lean tactics\nimport Lean4ByJLJ.Section02Reals.reals05\n\n\ndef TendsTo (a : ℕ → ℝ) (t : ℝ) : Prop :=\n  ∀ ε > 0, ∃ B : ℕ, ∀ n, B ≤ n → |a n - t| < ε\n\ntheorem tendsTo_def {a : ℕ → ℝ} {t : ℝ} :\n    TendsTo a t ↔ ∀ ε, 0 < ε → ∃ B : ℕ, ∀ n, B ≤ n → |a n - t| < ε := by\n  rfl\n\n/-\n\n# Harder questions\n\nHere are some harder questions. Don't feel like you have\nto do them. We've seen enough techniques to be able to do\nall of these, but the truth is that we've seen a ton of stuff\nin this course already, so probably you're not on top of all of\nit yet, and furthermore we have not seen\nsome techniques which will enable you to cut corners. If you\nwant to become a real Lean expert then see how many of these\nyou can do. I will go through them all in class,\nso if you like you can try some of them and then watch me\nsolving them.\n\nGood luck!\n-/\n/-- If `a(n)` tends to `t` then `37 * a(n)` tends to `37 * t`-/\ntheorem tendsTo_thirtyseven_mul (a : ℕ → ℝ) (t : ℝ) (h : TendsTo a t) :\n    TendsTo (fun n ↦ 37 * a n) (37 * t) := by\n  rw [tendsTo_def] at *\n  intro ε hε\n  specialize h (ε / 37) (by linarith)\n  cases' h with X hX\n  use X\n  intro n h\n  specialize hX n h\n  rw [← mul_sub]\n  rw [abs_mul]\n  rw [abs_of_nonneg]\n  <;> linarith\n\n\n/-- If `a(n)` tends to `t` and `c` is a positive constant then\n`c * a(n)` tends to `c * t`. -/\ntheorem tendsTo_pos_const_mul {a : ℕ → ℝ} {t : ℝ} (h : TendsTo a t) {c : ℝ} (hc : 0 < c) :\n    TendsTo (fun n ↦ c * a n) (c * t) := by\n  rw [tendsTo_def] at *\n  intro ε hε\n  have hε_div_c : ε / c > 0 := div_pos hε hc\n  specialize h (ε / c) (by linarith)\n  cases' h with X hX\n  use X\n  intro n hn\n  specialize hX n hn\n  rw [← mul_sub]\n  rw [abs_mul]\n  rw [abs_of_nonneg]\n  rw [mul_comm]\n  exact (lt_div_iff₀ hc).mp hX\n  linarith\n\n\n/-- If `a(n)` tends to `t` and `c` is a negative constant then\n`c * a(n)` tends to `c * t`. -/\ntheorem tendsTo_neg_const_mul {a : ℕ → ℝ} {t : ℝ} (h : TendsTo a t) {c : ℝ} (hc : c < 0) :\n    TendsTo (fun n ↦ c * a n) (c * t) := by\n  rw [tendsTo_def] at *\n  intro ε hε\n  have hc' : 0 < -c := neg_pos.mpr hc\n  have hε_div_c : ε / -c > 0 := div_pos hε hc'\n  specialize h (ε / -c) (by linarith)\n  cases' h with X hX\n  use X\n  intro n hn\n  specialize hX n hn\n  rw [← mul_sub]\n  rw [abs_mul]\n  rw [← abs_neg]\n  rw [abs_of_nonneg]\n  rw [mul_comm]\n  exact (lt_div_iff₀ hc').mp hX\n  linarith\n\n\n/-- If `a(n)` tends to `t` and `c` is a constant then `c * a(n)` tends\nto `c * t`. -/\ntheorem tendsTo_const_mul {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t) :\n    TendsTo (fun n ↦ c * a n) (c * t) := by\n    obtain hc | hc | hc := lt_trichotomy c 0\n    exact tendsTo_neg_const_mul h hc\n    rw [tendsTo_def] at *\n    intro ε h2\n    use 1\n    intro n hn\n    rw [hc]\n    rw [zero_mul]\n    simp\n    exact h2\n    exact tendsTo_pos_const_mul h hc\n\n\n/-- If `a(n)` tends to `t` and `c` is a constant then `a(n) * c` tends\nto `t * c`. -/\ntheorem tendsTo_mul_const {a : ℕ → ℝ} {t : ℝ} (c : ℝ) (h : TendsTo a t) :\n    TendsTo (fun n ↦ a n * c) (t * c) := by\n    obtain hc | hc | hc := lt_trichotomy c 0\n    rw [tendsTo_def] at *\n    intro ε hε\n    have hc' : 0 < -c := neg_pos.mpr hc\n    have hε_div_c : ε / -c > 0 := div_pos hε hc'\n    specialize h (ε / -c) (by linarith)\n    cases' h with X hX\n    use X\n    intro n hn\n    specialize hX n hn\n    rw [← sub_mul]\n    rw [abs_mul]\n    rw [mul_comm]\n    rw [← abs_neg]\n    rw [abs_of_nonneg]\n    rw [mul_comm]\n    exact (lt_div_iff₀ hc').mp hX\n    linarith\n\n    rw [tendsTo_def] at *\n    intro ε h2\n    use 1\n    intro n hn\n    rw [hc]\n    rw [mul_zero]\n    simp\n    exact h2\n\n    rw [tendsTo_def] at *\n    intro ε hε\n    have hε_div_c : ε / c > 0 := div_pos hε hc\n    specialize h (ε / c) (by linarith)\n    cases' h with X hX\n    use X\n    intro n hn\n    specialize hX n hn\n    rw [← sub_mul]\n    rw [abs_mul]\n    rw [mul_comm]\n    rw [abs_of_nonneg]\n    rw [mul_comm]\n    exact (lt_div_iff₀ hc).mp hX\n    linarith\n\n\n\n\n\n-- another proof of this result\ntheorem tendsTo_neg' {a : ℕ → ℝ} {t : ℝ} (ha : TendsTo a t) : TendsTo (fun n ↦ -a n) (-t) := by\n  simpa using tendsTo_const_mul (-1) ha\n\n/-- If `a(n)-b(n)` tends to `t` and `b(n)` tends to `u` then\n`a(n)` tends to `t + u`. -/\ntheorem tendsTo_of_tendsTo_sub {a b : ℕ → ℝ} {t u : ℝ} (h1 : TendsTo (fun n ↦ a n - b n) t)\n    (h2 : TendsTo b u) : TendsTo a (t + u) := by\n  rw [tendsTo_def] at *\n  intro ε hε\n  specialize h1 (ε/2) (by linarith)\n  specialize h2 (ε/2) (by linarith)\n  cases' h1 with X hX\n  cases' h2 with Y hY\n  use max X Y\n  intro n hn\n  rw [max_le_iff] at hn\n  specialize hX n hn.1\n  specialize hY n hn.2\n  rw [abs_lt] at *\n  constructor <;>\n   linarith\n  done\n\n/-- If `a(n)` tends to `t` then `a(n)-t` tends to `0`. -/\ntheorem tendsTo_sub_lim_iff {a : ℕ → ℝ} {t : ℝ} : TendsTo a t ↔ TendsTo (fun n ↦ a n - t) 0 := by\n  rw [tendsTo_def]\n  constructor\n  intro h1\n  rw [tendsTo_def]\n  intro ε hε\n  specialize h1 (ε) (by linarith)\n  cases' h1 with X hX\n  use X\n  intro n hn\n  specialize hX n hn\n  ring\n  exact hX\n\n  rw[tendsTo_def]\n  intro h1\n  intro ε hε\n  specialize h1 (ε) (by linarith)\n  cases' h1 with X hX\n  use X\n  intro n hn\n  specialize hX n hn\n  rw [abs_lt] at *\n  constructor <;>\n   linarith\n\n  done\n\n\n\n\n\n\n/-- If `a(n)` and `b(n)` both tend to zero, then their product tends\nto zero. -/\ntheorem tendsTo_zero_mul_tendsTo_zero {a b : ℕ → ℝ} (ha : TendsTo a 0) (hb : TendsTo b 0) :\n    TendsTo (fun n ↦ a n * b n) 0 := by\n  rw [tendsTo_def] at *\n  intro ε hε\n  specialize ha ε (by linarith)\n  specialize hb 1 (by linarith)\n  cases' ha with X hX\n  cases' hb with Y hY\n  use max X Y\n  intro n hn\n  rw [max_le_iff] at hn\n  specialize hX n hn.1\n  specialize hY n hn.2\n  rw [sub_zero] at *\n  rw [abs_mul]\n  have h1: ε*1 = ε := by\n    rw [mul_one]\n  rw [← h1]\n  apply mul_lt_mul'\n  linarith\n  exact hY\n  exact abs_nonneg (b n)\n  exact hε\n\n\n/-- If `a(n)` tends to `t` and `b(n)` tends to `u` then\n`a(n)*b(n)` tends to `t*u`. -/\ntheorem tendsTo_mul (a b : ℕ → ℝ) (t u : ℝ) (ha : TendsTo a t) (hb : TendsTo b u) :\n    TendsTo (fun n ↦ a n * b n) (t * u) := by\n    rw [tendsTo_sub_lim_iff] at *\n    have h : ∀ n, a n * b n - t * u = (a n - t) * (b n - u) + t * (b n - u) + (a n - t) * u := by\n      intro n\n      ring\n\n\n\n\n\n-- something we never used!\n/-- A sequence has at most one limit. -/\ntheorem tendsTo_unique (a : ℕ → ℝ) (s t : ℝ) (hs : TendsTo a s) (ht : TendsTo a t) : s = t := by\n  have h : TendsTo (fun n ↦ a n - a n) (s - t) := by\n    rw [tendsTo_def] at *\n    intro ε hε\n    specialize ht (ε / 2) (by linarith)\n    cases' ht with X hX\n    obtain ⟨Y, hY⟩ := hs (ε / 2) (by linarith)\n    use max X Y\n    intro n hn\n    specialize hX n (le_of_max_le_left hn)\n    specialize hY n (le_of_max_le_right hn)\n    rw [abs_lt] at *\n    constructor <;>\n      linarith\n\n  rw [tendsTo_def] at *\n  by_contra hcontra\n  have h' : s ≠ t := hcontra\n  obtain ⟨ε, hε⟩ : ∃ ε > 0, ε ≤ |s - t| := by\n    have hd : |s-t| > 0 := by\n      by_contra hd1\n      simp at hd1\n      apply h'\n      linarith\n    use |s-t|/2\n    constructor\n    linarith\n    linarith\n  have hε' : ε > 0 := hε.left\n  specialize h ε (by linarith)\n  cases' h with X hX\n  simp at hX\n  have hX' : X ≤ X := by linarith\n  specialize hX X hX'\n  have hε'' : ε ≤ |s - t| := hε.right\n  rw [abs_sub_comm] at hX\n  linarith [hε'', hX]\n","languageId":"lean"},"dependencyBuildMode":"always"},"method":"textDocument/didOpen","jsonrpc":"2.0"}Content-Length: 168
 
-{"method":"exit","jsonrpc":"2.0"}
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":1}Content-Length: 142
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"method":"$/lean/rpc/connect","jsonrpc":"2.0","id":2}Content-Length: 414
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":3}Content-Length: 417
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":4}Content-Length: 375
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":5}Content-Length: 324
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":6}Content-Length: 166
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":7}Content-Length: 168
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":8}Content-Length: 173
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":9}Content-Length: 253
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":185,"character":0},"end":{"line":292,"character":0}}},"method":"textDocument/semanticTokens/range","jsonrpc":"2.0","id":10}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":0}Content-Length: 62
+
+{"params":{"id":7},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":10},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 62
+
+{"params":{"id":8},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 62
+
+{"params":{"id":1},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":11}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":12}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":13}Content-Length: 63
+
+{"params":{"id":11},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":14}Content-Length: 253
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":185,"character":0},"end":{"line":292,"character":0}}},"method":"textDocument/semanticTokens/range","jsonrpc":"2.0","id":15}Content-Length: 253
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":185,"character":0},"end":{"line":292,"character":0}}},"method":"textDocument/semanticTokens/range","jsonrpc":"2.0","id":16}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":17}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":18}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":19}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":20}Content-Length: 63
+
+{"params":{"id":13},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":15},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":16},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":14},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":12},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":21}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":22}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":23}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":24}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":25}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":26}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":27}Content-Length: 63
+
+{"params":{"id":21},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":28}Content-Length: 198
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":237,"character":4}},"method":"textDocument/hover","jsonrpc":"2.0","id":29}Content-Length: 63
+
+{"params":{"id":29},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 253
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":185,"character":0},"end":{"line":292,"character":0}}},"method":"textDocument/semanticTokens/range","jsonrpc":"2.0","id":30}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 198
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":231,"character":4}},"method":"textDocument/hover","jsonrpc":"2.0","id":31}Content-Length: 63
+
+{"params":{"id":31},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 174
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":32}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":27},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":30},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":28},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":22},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":33}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":34}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":35}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":36}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":37}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":38}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":1}Content-Length: 174
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":39}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":40}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":41}Content-Length: 198
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":231,"character":8}},"method":"textDocument/hover","jsonrpc":"2.0","id":42}Content-Length: 63
+
+{"params":{"id":42},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":40},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":41},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 63
+
+{"params":{"id":34},"method":"$/cancelRequest","jsonrpc":"2.0"}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":2}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":3}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":4}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":43}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":44}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":45}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":46}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":5}Content-Length: 38
+
+{"result":null,"jsonrpc":"2.0","id":6}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":47}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":48}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":49}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":50}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":51}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":52}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":53}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":54}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":55}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":56}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":57}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":58}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":59}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":60}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":61}Content-Length: 174
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":62}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":63}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":64}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":65}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":66}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":67}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":68}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":69}Content-Length: 174
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":70}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 199
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":241,"character":22}},"method":"textDocument/hover","jsonrpc":"2.0","id":71}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 198
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":233,"character":5}},"method":"textDocument/hover","jsonrpc":"2.0","id":72}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 199
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":246,"character":10}},"method":"textDocument/hover","jsonrpc":"2.0","id":73}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 199
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":242,"character":41}},"method":"textDocument/hover","jsonrpc":"2.0","id":74}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 4868
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159","refs":[{"p":"479"},{"p":"463"},{"p":"462"},{"p":"461"},{"p":"460"},{"p":"459"},{"p":"458"},{"p":"457"},{"p":"456"},{"p":"455"},{"p":"454"},{"p":"453"},{"p":"452"},{"p":"451"},{"p":"450"},{"p":"449"},{"p":"448"},{"p":"447"},{"p":"446"},{"p":"445"},{"p":"444"},{"p":"443"},{"p":"442"},{"p":"441"},{"p":"440"},{"p":"439"},{"p":"438"},{"p":"437"},{"p":"436"},{"p":"435"},{"p":"434"},{"p":"433"},{"p":"432"},{"p":"431"},{"p":"430"},{"p":"429"},{"p":"428"},{"p":"427"},{"p":"426"},{"p":"425"},{"p":"424"},{"p":"423"},{"p":"422"},{"p":"421"},{"p":"420"},{"p":"419"},{"p":"418"},{"p":"417"},{"p":"416"},{"p":"415"},{"p":"414"},{"p":"413"},{"p":"412"},{"p":"411"},{"p":"410"},{"p":"409"},{"p":"408"},{"p":"407"},{"p":"406"},{"p":"405"},{"p":"404"},{"p":"403"},{"p":"402"},{"p":"401"},{"p":"400"},{"p":"478"},{"p":"477"},{"p":"476"},{"p":"475"},{"p":"474"},{"p":"473"},{"p":"472"},{"p":"471"},{"p":"470"},{"p":"469"},{"p":"468"},{"p":"467"},{"p":"466"},{"p":"465"},{"p":"464"},{"p":"319"},{"p":"303"},{"p":"302"},{"p":"301"},{"p":"300"},{"p":"299"},{"p":"298"},{"p":"297"},{"p":"296"},{"p":"295"},{"p":"294"},{"p":"293"},{"p":"292"},{"p":"291"},{"p":"290"},{"p":"289"},{"p":"288"},{"p":"287"},{"p":"286"},{"p":"285"},{"p":"284"},{"p":"283"},{"p":"282"},{"p":"281"},{"p":"280"},{"p":"279"},{"p":"278"},{"p":"277"},{"p":"276"},{"p":"275"},{"p":"274"},{"p":"273"},{"p":"272"},{"p":"271"},{"p":"270"},{"p":"269"},{"p":"268"},{"p":"267"},{"p":"266"},{"p":"265"},{"p":"264"},{"p":"263"},{"p":"262"},{"p":"261"},{"p":"260"},{"p":"259"},{"p":"258"},{"p":"257"},{"p":"256"},{"p":"255"},{"p":"254"},{"p":"253"},{"p":"252"},{"p":"251"},{"p":"250"},{"p":"249"},{"p":"248"},{"p":"247"},{"p":"246"},{"p":"245"},{"p":"244"},{"p":"243"},{"p":"242"},{"p":"241"},{"p":"240"},{"p":"318"},{"p":"317"},{"p":"316"},{"p":"315"},{"p":"314"},{"p":"313"},{"p":"312"},{"p":"311"},{"p":"310"},{"p":"309"},{"p":"308"},{"p":"307"},{"p":"306"},{"p":"305"},{"p":"304"},{"p":"239"},{"p":"223"},{"p":"222"},{"p":"221"},{"p":"220"},{"p":"219"},{"p":"218"},{"p":"217"},{"p":"216"},{"p":"215"},{"p":"214"},{"p":"213"},{"p":"212"},{"p":"211"},{"p":"210"},{"p":"209"},{"p":"208"},{"p":"207"},{"p":"206"},{"p":"205"},{"p":"204"},{"p":"203"},{"p":"202"},{"p":"201"},{"p":"200"},{"p":"199"},{"p":"198"},{"p":"197"},{"p":"196"},{"p":"195"},{"p":"194"},{"p":"193"},{"p":"192"},{"p":"191"},{"p":"190"},{"p":"189"},{"p":"188"},{"p":"187"},{"p":"186"},{"p":"185"},{"p":"184"},{"p":"183"},{"p":"182"},{"p":"181"},{"p":"180"},{"p":"179"},{"p":"178"},{"p":"177"},{"p":"176"},{"p":"175"},{"p":"174"},{"p":"173"},{"p":"172"},{"p":"171"},{"p":"170"},{"p":"169"},{"p":"168"},{"p":"167"},{"p":"166"},{"p":"165"},{"p":"164"},{"p":"163"},{"p":"162"},{"p":"161"},{"p":"160"},{"p":"238"},{"p":"237"},{"p":"236"},{"p":"235"},{"p":"234"},{"p":"233"},{"p":"232"},{"p":"231"},{"p":"230"},{"p":"229"},{"p":"228"},{"p":"227"},{"p":"226"},{"p":"225"},{"p":"224"},{"p":"159"},{"p":"143"},{"p":"142"},{"p":"141"},{"p":"140"},{"p":"139"},{"p":"138"},{"p":"137"},{"p":"136"},{"p":"135"},{"p":"134"},{"p":"133"},{"p":"132"},{"p":"131"},{"p":"130"},{"p":"129"},{"p":"128"},{"p":"127"},{"p":"126"},{"p":"125"},{"p":"124"},{"p":"123"},{"p":"122"},{"p":"121"},{"p":"120"},{"p":"119"},{"p":"118"},{"p":"117"},{"p":"116"},{"p":"115"},{"p":"114"},{"p":"113"},{"p":"112"},{"p":"111"},{"p":"110"},{"p":"109"},{"p":"108"},{"p":"107"},{"p":"106"},{"p":"105"},{"p":"104"},{"p":"103"},{"p":"102"},{"p":"101"},{"p":"100"},{"p":"99"},{"p":"98"},{"p":"97"},{"p":"96"},{"p":"95"},{"p":"94"},{"p":"93"},{"p":"92"},{"p":"91"},{"p":"90"},{"p":"89"},{"p":"88"},{"p":"87"},{"p":"86"},{"p":"85"},{"p":"84"},{"p":"83"},{"p":"82"},{"p":"81"},{"p":"80"},{"p":"158"},{"p":"157"},{"p":"156"},{"p":"155"},{"p":"154"},{"p":"153"},{"p":"152"},{"p":"151"},{"p":"150"},{"p":"149"},{"p":"148"},{"p":"147"},{"p":"146"},{"p":"145"},{"p":"144"},{"p":"79"},{"p":"63"},{"p":"62"},{"p":"61"},{"p":"60"},{"p":"59"},{"p":"58"},{"p":"57"},{"p":"56"},{"p":"55"},{"p":"54"},{"p":"53"},{"p":"52"},{"p":"51"},{"p":"50"},{"p":"49"},{"p":"48"},{"p":"47"},{"p":"46"},{"p":"45"},{"p":"44"},{"p":"43"},{"p":"42"},{"p":"41"},{"p":"40"},{"p":"39"},{"p":"38"},{"p":"37"},{"p":"36"},{"p":"35"},{"p":"34"},{"p":"33"},{"p":"32"},{"p":"31"},{"p":"30"},{"p":"29"},{"p":"28"},{"p":"27"},{"p":"26"},{"p":"25"},{"p":"24"},{"p":"23"},{"p":"22"},{"p":"21"},{"p":"20"},{"p":"19"},{"p":"18"},{"p":"17"},{"p":"16"},{"p":"15"},{"p":"14"},{"p":"13"},{"p":"12"},{"p":"11"},{"p":"10"},{"p":"9"},{"p":"8"},{"p":"7"},{"p":"6"},{"p":"5"},{"p":"4"},{"p":"3"},{"p":"2"},{"p":"1"},{"p":"0"},{"p":"78"},{"p":"77"},{"p":"76"},{"p":"75"},{"p":"74"},{"p":"73"},{"p":"72"},{"p":"71"},{"p":"70"},{"p":"69"},{"p":"68"},{"p":"67"},{"p":"66"},{"p":"65"},{"p":"64"}]},"method":"$/lean/rpc/release","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 199
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":242,"character":39}},"method":"textDocument/hover","jsonrpc":"2.0","id":75}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 199
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":254,"character":13}},"method":"textDocument/hover","jsonrpc":"2.0","id":76}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":77}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":78}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":79}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":80}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":81}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":82}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":83}Content-Length: 174
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":84}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 198
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":250,"character":0}},"method":"textDocument/hover","jsonrpc":"2.0","id":85}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 284
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":0}},"context":{"triggerKind":2,"diagnostics":[]}},"method":"textDocument/codeAction","jsonrpc":"2.0","id":86}Content-Length: 415
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveGoals"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":87}Content-Length: 418
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"position":{"line":248,"character":0}},"method":"Lean.Widget.getInteractiveTermGoal"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":88}Content-Length: 376
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","line":248,"character":0},"method":"Lean.Widget.getWidgets"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":89}Content-Length: 325
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"},"sessionId":"2514182738725823159","position":{"line":248,"character":0},"params":{"lineRange":{"start":248,"end":249}},"method":"Lean.Widget.getInteractiveDiagnostics"},"method":"$/lean/rpc/call","jsonrpc":"2.0","id":90}Content-Length: 167
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/foldingRange","jsonrpc":"2.0","id":91}Content-Length: 169
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/documentSymbol","jsonrpc":"2.0","id":92}Content-Length: 174
+
+{"params":{"textDocument":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean"}},"method":"textDocument/semanticTokens/full","jsonrpc":"2.0","id":93}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}Content-Length: 171
+
+{"params":{"uri":"file:///d%3A/Lean/Lean4_byJLJ/Lean4ByJLJ/Section02Reals/reals06.lean","sessionId":"2514182738725823159"},"method":"$/lean/rpc/keepAlive","jsonrpc":"2.0"}
