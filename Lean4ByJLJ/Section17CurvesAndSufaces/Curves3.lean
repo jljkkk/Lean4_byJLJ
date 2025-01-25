@@ -3,6 +3,7 @@ import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Analysis.Calculus.Deriv.Abs
+import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 
 /-
 
@@ -64,8 +65,9 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
     (hφdiff : ContDiffOn ℝ ⊤ φ (Set.Icc a b))
     (hφregular : ∀ x, x ∈ Set.Icc a b → fderiv ℝ φ x ≠ 0) :
     ContDiffOn ℝ ⊤ ψ (Set.Icc c d) ∧
-      ∀ y, y ∈ Set.Icc c d → ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z :=
-  sorry
+      ∀ y, y ∈ Set.Icc c d → ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z := by
+      constructor
+
 
 /-
 Heather Macbeth: @Kevin Buzzard This is a toy case of the inverse function theorem,
