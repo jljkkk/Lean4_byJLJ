@@ -106,8 +106,43 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
       constructor
       exact hψdiff
 
-      intro y hy z
-      apply hψ_hom at hy
+      intro y hy
+      have hyab : ψ y ∈ Icc a b := hψ y hy
+      have hφreg : fderiv ℝ φ (ψ y) ≠ 0 := hφregular (ψ y) (hψ y hy)
+      have hφψ : φ (ψ y) = y := right_inv y hy
+      cases' hy with hcy hdy
+      cases' lt_or_eq_of_le hdy with hdy_lt hdy_eq
+      cases' lt_or_eq_of_le hcy with hcy_lt hcy_eq
+
+      have hψdiff_at : ContDiffAt ℝ ⊤ ψ y := by
+        apply ContDiffOn.contDiffAt
+        exact hψdiff
+        simp
+        constructor
+        exact hcy_lt
+        exact hdy_lt
+
+      have hψy : HasStrictFDerivAt ψ (fderiv ℝ ψ y) y := by
+        apply ContDiffAt.hasStrictFDerivAt
+        exact hψdiff_at
+        simp
+
+
+      have hφψy : HasStrictFDerivAt φ (fderiv ℝ φ (ψ y)) (ψ y) := by
+
+        exact hφ_strict.of_local_left_inverse hφ_strict hφψ hφreg
+
+      apply HasStrictFDerivAt.to_localInverse at hφψy
+
+
+
+
+
+
+
+
+
+
 
 
 
