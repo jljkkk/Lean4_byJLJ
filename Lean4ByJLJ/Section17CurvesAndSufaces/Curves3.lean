@@ -106,15 +106,24 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
       constructor
       exact hψdiff
 
+      /-proof of the second part
+      -/
+
+
+
+
+
       intro y hy
       have hyab : ψ y ∈ Icc a b := hψ y hy
       have hφreg : fderiv ℝ φ (ψ y) ≠ 0 := hφregular (ψ y) (hψ y hy)
       have hφψ : φ (ψ y) = y := right_inv y hy
-      cases' hy with hcy hdy
-      cases' lt_or_eq_of_le hdy with hdy_lt hdy_eq
-      cases' lt_or_eq_of_le hcy with hcy_lt hcy_eq
+
+
 
       have hψdiff_at : ContDiffAt ℝ ⊤ ψ y := by
+        cases' hy with hcy hdy
+        cases' lt_or_eq_of_le hdy with hdy_lt hdy_eq
+        cases' lt_or_eq_of_le hcy with hcy_lt hcy_eq
         apply ContDiffOn.contDiffAt
         exact hψdiff
         simp
@@ -127,32 +136,33 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
         exact hψdiff_at
         simp
 
+      have hφψdiff_at : ContDiffAt ℝ ⊤ φ (ψ y) := by
+        cases' hyab with hyab_a hyab_b
+        cases' lt_or_eq_of_le hyab_a with hyab_a_lt hyab_a_eq
+        cases' lt_or_eq_of_le hyab_b with hyab_b_lt hyab_b_eq
+        apply ContDiffOn.contDiffAt
+        exact hφdiff
+        simp
+        constructor
+        exact hyab_a_lt
+        exact hyab_b_lt
+
 
       have hφψy : HasStrictFDerivAt φ (fderiv ℝ φ (ψ y)) (ψ y) := by
+        apply ContDiffAt.hasStrictFDerivAt
+        exact hφψdiff_at
+        /-dont know why simp doesnt work at here-/
 
-        exact hφ_strict.of_local_left_inverse hφ_strict hφψ hφreg
+      have fderiv_id: (fderiv ℝ ψ y) ∘ ((fderiv ℝ φ (ψ y))) = id := by
+        have h_comp := HasStrictFDerivAt.comp_hasStrictDerivAt hψy hφψy
+        exact h_comp
 
-      apply HasStrictFDerivAt.to_localInverse at hφψy
+      have fderiv_id' : ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z := by
+        intro z
+        have h_comp := congr_fun fderiv_id z
+        exact h_comp
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      exact fderiv_id'
 
 
 
