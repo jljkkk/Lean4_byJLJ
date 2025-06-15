@@ -6,6 +6,7 @@ import Mathlib.Analysis.Calculus.Deriv.Abs
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
 import Mathlib.Topology.Basic
 import Mathlib.Topology.Homeomorph
+import Mathlib.Order.Interval.Set.Defs
 
 /-
 
@@ -106,6 +107,12 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
       constructor
       exact hψdiff
 
+      /-proof of the second part
+      -/
+
+
+
+
       intro y hy
       have hyab : ψ y ∈ Icc a b := hψ y hy
       have hφreg : fderiv ℝ φ (ψ y) ≠ 0 := hφregular (ψ y) (hψ y hy)
@@ -113,26 +120,119 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
       cases' hy with hcy hdy
       cases' lt_or_eq_of_le hdy with hdy_lt hdy_eq
       cases' lt_or_eq_of_le hcy with hcy_lt hcy_eq
+      cases' hyab with hyab_a hyab_b
+      cases' lt_or_eq_of_le hyab_a with hyab_a_lt hyab_a_eq
+      cases' lt_or_eq_of_le hyab_b with hyab_b_lt hyab_b_eq
+
+
 
       have hψdiff_at : ContDiffAt ℝ ⊤ ψ y := by
+        /-cases' hy with hcy hdy-/
         apply ContDiffOn.contDiffAt
         exact hψdiff
         simp
         constructor
         exact hcy_lt
         exact hdy_lt
+        /-cases' lt_or_eq_of_le hdy with hdy_lt hdy_eq
+        cases' lt_or_eq_of_le hcy with hcy_lt hcy_eq
+        exact hcy_lt
+        exact hdy_lt
+        -/
+
 
       have hψy : HasStrictFDerivAt ψ (fderiv ℝ ψ y) y := by
         apply ContDiffAt.hasStrictFDerivAt
         exact hψdiff_at
         simp
 
+      have hφψdiff_at : ContDiffAt ℝ ⊤ φ (ψ y) := by
+        apply ContDiffOn.contDiffAt
+        exact hφdiff
+        simp
+        constructor
+        exact hyab_a_lt
+        exact hyab_b_lt
+        /-
+        cases' hyab with hyab_a hyab_b
+        cases' lt_or_eq_of_le hyab_a with hyab_a_lt hyab_a_eq
+        cases' lt_or_eq_of_le hyab_b with hyab_b_lt hyab_b_eq
+        simp
+        constructor
+        exact hyab_a_lt
+        exact hyab_b_lt
+        -/
+
+
 
       have hφψy : HasStrictFDerivAt φ (fderiv ℝ φ (ψ y)) (ψ y) := by
+        apply ContDiffAt.hasStrictFDerivAt
+        exact hφψdiff_at
+        /-dont know why simp doesnt work at here-/
 
-        exact hφ_strict.of_local_left_inverse hφ_strict hφψ hφreg
+      have fderiv_id: (fderiv ℝ ψ y) ∘ ((fderiv ℝ φ (ψ y))) = id := by
+        have h_comp := HasStrictFDerivAt.comp_hasStrictDerivAt hψy hφψy
+        exact h_comp
 
-      apply HasStrictFDerivAt.to_localInverse at hφψy
+      have fderiv_id' : ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z := by
+        intro z
+        have h_comp := congr_fun fderiv_id z
+        exact h_comp
+
+      exact fderiv_id'
+
+      have hψ_deriv : HasFDerivAt ψ (fderiv ℝ ψ y) y := by
+        apply DifferentiableOn.hasFDerivAt
+        apply ContDiffOn.differentiableOn hψdiff
+        simp
+        rw [mem_nhds_iff]
+        have cd_open: y ∈ (Set.Ioo c d) := by
+          rw [Set.mem_Ioo]
+          constructor
+          exact hcy_lt
+          exact hdy_lt
+        let t := Ioo (c) (d)
+        use t
+        have t_y: y ∈ t := by exact cd_open
+        have t_subset: t ⊆ Icc c d := by
+          rw [Set.subset_def]
+          intro x hx
+          rw [Set.mem_Ioo] at hx
+          rw [Set.mem_Icc]
+          cases' hx with hcx hdx
+          constructor
+          linarith
+          linarith
+        have t_open: IsOpen t := by
+          have h_open: IsOpen (Ioo c d) := by
+            exact isOpen_Ioo
+          exact h_open
+
+        exact And.intro t_subset (And.intro t_open t_y)
+
+      have hφψdiff_at : ContDiffAt ℝ ⊤ φ (ψ y) := by
+        apply ContDiffOn.contDiffAt
+        exact hφdiff
+        simp
+        constructor
+        exact hyab_a_lt
+        /- This wont work-/
+
+      have hφψy : HasStrictFDerivAt φ (fderiv ℝ φ (ψ y)) (ψ y) := by
+        apply ContDiffAt.hasStrictFDerivAt
+        exact hφψdiff_at
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
