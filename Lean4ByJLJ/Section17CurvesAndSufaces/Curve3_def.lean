@@ -218,14 +218,42 @@ theorem der_equiv (f : ℝ → ℝ) (x  : ℝ) :
     rw [← has_der]
     exact hf'
     unfold Mydiff at h1
-    simp at h1
-
-    sorry
+    by_contra h'
+    rw [has_der] at hf'
+    apply h1
+    use f'
 
   rw [aux]
   exact hf'
+  have equiv: (∀ (x_1 : ℝ), ¬Myhasder f x_1 x) ↔ (∀ (x_1 : ℝ), ¬HasDerivAt f x_1 x ):= by
+    constructor
+    intro h z
+    specialize h z
+    rw [has_der]
+    exact h
+    intro h z
+    specialize h z
+    rw [← has_der]
+    exact h
+  have zero1: Myderiv f x = 0 := by
+    unfold Myderiv
+    rw [dif_neg]
+    unfold Mydiff
+    simp at *
+    rw [equiv]
+    exact h
 
-  sorry
+  have zero2 : deriv f x = 0 := by
+    have ne_diff :  ¬ DifferentiableAt ℝ f x := by
+      rw [diff]
+      unfold Mydiff
+      simp
+      simp at h
+      rw [equiv]
+      exact h
+    apply deriv_zero_of_not_differentiableAt ne_diff
+
+  rw [zero1,zero2]
 
 
 
@@ -762,6 +790,7 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
 
 
       | succ m' ih =>
+
         sorry
 
 
