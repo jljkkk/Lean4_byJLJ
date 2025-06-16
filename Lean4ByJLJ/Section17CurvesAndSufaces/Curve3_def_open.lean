@@ -200,33 +200,11 @@ theorem diff (f : ℝ → ℝ) (x : ℝ) :
 
 theorem der_unique (f : ℝ → ℝ) ( f1' f2' x : ℝ) (h0: Myhasder f f1' x) (h1: Myhasder f f2' x):
   f1' = f2'  := by
-  rw [← has_der] at *
-  apply HasDerivAt.unique h0 h1
+  sorry
 
 theorem der_equiv (f : ℝ → ℝ) (x  : ℝ) :
   deriv f x = Myderiv f x := by
-  by_cases h : ∃ f', HasDerivAt f f' x
-  have h' : ∃ f', HasDerivAt f f' x := h
-  rw [HasDerivAt.deriv]
-  obtain ⟨ f' , hf'⟩ := h'
-  have aux : Myderiv f x = f' := by
-    unfold Myderiv
-    split_ifs with h1
-    unfold Mydiff at h1
-    apply der_unique f _ f' x
-    exact Classical.choose_spec h1
-    rw [← has_der]
-    exact hf'
-    unfold Mydiff at h1
-    simp at h1
-
-    sorry
-
-  rw [aux]
-  exact hf'
-
   sorry
-
 
 
 def my_has_der (f f': ℝ → ℝ) (x  : ℝ) (s : Set ℝ ) : Prop :=
@@ -704,252 +682,27 @@ theorem contdiffOn_equiv (f : ℝ → ℝ) (n : WithTop ℕ∞) ( s : Set ℝ) :
 
 
 
-example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (hcd : c ≤ d)
-    (hφ : ∀ x, x ∈ Set.Icc a b → φ x ∈ Set.Icc c d)
-    (hψ : ∀ y, y ∈ Set.Icc c d → ψ y ∈ Set.Icc a b)
-    (left_inv : ∀ x, x ∈ Set.Icc a b → ψ (φ x) = x)
-    (right_inv : ∀ y, y ∈ Set.Icc c d → φ (ψ y) = y)
-    (hφdiff : ContDiffOn ℝ ⊤ φ (Set.Icc a b))
-    (hφregular : ∀ x, x ∈ Set.Icc a b → fderiv ℝ φ x ≠ 0) :
-    ContDiffOn ℝ ⊤ ψ (Set.Icc c d) ∧
-      ∀ y, y ∈ Set.Icc c d → ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z := by
+example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a < b) (hcd : c < d)
+    (hφ : ∀ x, x ∈ Set.Ioo a b → φ x ∈ Set.Ioo c d)
+    (hψ : ∀ y, y ∈ Set.Ioo c d → ψ y ∈ Set.Ioo a b)
+    (left_inv : ∀ x, x ∈ Set.Ioo a b → ψ (φ x) = x)
+    (right_inv : ∀ y, y ∈ Set.Ioo c d → φ (ψ y) = y)
+    (hφdiff : ContDiffOn ℝ ⊤ φ (Set.Ioo a b))
+    (hφregular : ∀ x, x ∈ Set.Ioo a b → fderiv ℝ φ x ≠ 0) :
+    ContDiffOn ℝ ⊤ ψ (Set.Ioo c d) ∧
+      ∀ y, y ∈ Set.Ioo c d → ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z := by
 
-    have ψ_smooth : ContDiffOn ℝ ⊤ ψ (Icc c d) := by
-      rw [contdiffOn_equiv] at *
-      intro x hx
-      have hy : ψ x ∈ Icc a b := by
-        apply hψ at hx
-        exact hx
-      apply hφdiff at hy
-      unfold my_contdiffwithin_at at *
-      rw [if_pos] at *
-      intro n
-      induction n with
-      | zero =>
-        have aux : my_continuous (my_der_k φ (ψ x) 0 (Icc a b)) (ψ x) (Icc a b) := by
-          specialize hy 0
-          exact hy
+      constructor
 
-        unfold my_continuous
-        unfold my_der_k
-        rw [if_pos]
-        unfold my_der_k at aux
-        rw [if_pos] at aux
-        unfold my_continuous at aux
-        intro ε hε
-        obtain ⟨ δ , δ_pos , hδ ⟩ := aux ε hε
-        use δ
-        constructor
-        exact δ_pos
-        intro y hy
-        cases' hy with hy1 hy2
-        have y_int :  y ∈ Icc c d := by
-          cases hy2 with
-          | inl hy =>
-            exact hy
-          | inr hy =>
-            rw [mem_singleton_iff] at hy
-            rw [hy]
-            exact hx
+      sorry
 
-        apply right_inv at hx
-        rw [hx] at hδ
-        sorry
-
-        simp
-        simp
-
-
-
-      | succ m' ih =>
-        sorry
-
-
-
+      intro y hy z
       simp
-
-      simp
-
-    constructor
-    exact ψ_smooth
-
-    intro y hy z
-    simp
-    rw [mul_assoc]
-    have eq_one : deriv φ (ψ y) * deriv ψ y  = 1 := by
-      have res : deriv φ (ψ y) = 1 / deriv ψ y := by
-        have aux : HasDerivAt ψ (deriv φ (ψ y))⁻¹ y := by
-          rw [has_der]
-          have der_ne_zero : deriv φ (ψ y) ≠ 0 := by
-            apply hψ at hy
-            apply hφregular at hy
-            rw [← norm_ne_zero_iff] at hy
-            rw [← norm_deriv_eq_norm_fderiv] at hy
-            rw [Real.norm_eq_abs,abs_ne_zero] at hy
-            exact hy
-
-          have hf : HasDerivAt φ (deriv φ (ψ y)) (ψ y) := by
-             have aux : DifferentiableAt ℝ φ (ψ y) := by
-              apply differentiableAt_of_deriv_ne_zero der_ne_zero
-             rw [has_der]
-             rw [der_equiv]
-             unfold Myderiv
-             rw [diff] at aux
-             rw [dif_pos]
-             exact Classical.choose_spec aux
-
-
-          rw [has_der] at hf
-          unfold Myhasder at *
-          let dφ := deriv φ (ψ y)
-          intro ε ε_pos
-          have dφ_ne_zero : dφ ≠ 0 := der_ne_zero
-          let ε' := min (|dφ|/2) (ε * dφ^2 / 2)
-          have ε'_pos : 0 < ε' := by
-            apply lt_min
-            simp
-            exact dφ_ne_zero
-            positivity
-
-          obtain ⟨δ', δ'_pos, hδ'⟩ := hf ε' ε'_pos
-          have ψ_cont : ContinuousAt ψ y := by
-            --apply ContDiffOn.continuousOn ψ_smooth y hy
-
-            sorry
-
-          obtain ⟨η, η_pos, hη⟩ : ∃ η > 0, ∀ y₁, |y₁ - y| < η → |ψ y₁ - ψ y| < δ' := by
-            sorry
-
-          use min η (ε' * δ' / (|dφ| + ε')), lt_min η_pos (by positivity)
-          intro y₁ hy₁
-          rcases hy₁ with ⟨y₁_ne, y₁_close⟩
-          have y₁_close' : |y₁ - y| < η := (lt_min_iff.mp y₁_close).1
-          have y₁_close'' : |y₁ - y| < ε' * δ' / (|dφ| + ε') := (lt_min_iff.mp y₁_close).2
-          have hψ_close : |ψ y₁ - ψ y| < δ' := hη y₁ y₁_close'
-          by_cases hψ_eq : ψ y₁ = ψ y
-          have : y₁ = y := by
-            rw [← right_inv y hy, ← right_inv y₁]
-            rw [hψ_eq]
-            sorry
-          rw [this] at y₁_ne
-          simp at y₁_ne
-
-          have hdiff : |(φ (ψ y₁) - φ (ψ y)) / (ψ y₁ - ψ y) - dφ| < ε' := by
-            apply hδ' (ψ y₁)
-            constructor
-            simp
-            have different : ψ y₁ ≠ ψ y := by
-              exact hψ_eq
-            rw [← sub_ne_zero] at different
-            exact different
-
-            exact hψ_close
-
-          have y₁_eq : y₁ = φ (ψ y₁) := by
-            sorry
-
-          have y_eq : y = φ (ψ y) := by
-            apply right_inv at hy
-            symm
-            exact hy
-
-          rw [← y_eq,  ← y₁_eq] at hdiff
-          let r := (y₁ - y) / (ψ y₁ - ψ y) - dφ
-          have r_bound : |r| < ε' := hdiff
-          have dφ_r_ne_zero : dφ + r ≠ 0 := by
-            have : |r| < |dφ|/2 := lt_of_lt_of_le r_bound (min_le_left _ _)
-            sorry
-
-          have : (ψ y₁ - ψ y) / (y₁ - y) = 1 / (dφ + r) := by
-            simp at y₁_ne
-            field_simp [sub_ne_zero.mpr y₁_ne, hψ_eq]
-            ring
-            sorry
-
-          rw [this]
-          have : |1 / (dφ + r) - dφ⁻¹| = |r| / |dφ * (dφ + r)| := by
-            have key : 1 / (dφ + r) - dφ⁻¹ = (-r) / (dφ * (dφ + r)) := by
-              field_simp [hφ]
-              left
-              ring
-            rw [key]
-            rw [abs_div, abs_mul]
-            rw [abs_neg]
-
-          have dφ_eq : dφ = deriv φ (ψ y) := by simp
-          rw [← dφ_eq]
-
-          rw [this]
-
-          have d1: |dφ + r| ≥ |dφ| - |r| := by
-            have h := abs_add (dφ + r) (-r)
-            simp at h
-            rw [add_comm] at h
-            linarith
-
-          have d2: |dφ + r| ≥ |dφ| - ε' := by linarith
-          have d3: |dφ + r| ≥ |dφ|/2 := by
-            have aux : |dφ| - ε' ≥ |dφ|/2 := by
-              unfold ε'
-              have le_min : |dφ| / 2 ⊓ ε * dφ ^ 2 / 2 ≤  |dφ| / 2 := by
-                apply min_le_left
-              have sub_le : |dφ| - |dφ|/2 ≥ |dφ|/2 := by
-                ring
-                simp
-              have aux : |dφ| - |dφ| / 2 ⊓ ε * dφ ^ 2 / 2 ≥ |dφ| - |dφ|/2 := by
-                apply sub_le_sub_left
-                exact le_min
-
-              exact ge_trans aux sub_le
-
-            exact ge_trans d2 aux
-
-
-          have d4: |dφ * (dφ + r)| ≥ |dφ| * (|dφ|/2) := by
-            rw [abs_mul]
-            have non_neg : 0 ≤ |dφ| / 2 := by
-              apply div_nonneg
-              simp
-              simp
-            apply mul_le_mul le_rfl d3 non_neg (abs_nonneg _)
-
-          have d5: |r| / |dφ * (dφ + r)| ≤ |r| / (|dφ| * (|dφ|/2)) := by
-            refine div_le_div_of_nonneg_left (abs_nonneg _) ?_ d4
-            positivity
-
-          have d6: |r| / (|dφ| * (|dφ|/2)) = 2 * |r| / |dφ|^2 := by ring
-          rw [d6] at *
-          have ε'_le : ε' ≤ ε * dφ^2 / 2 := min_le_right _ _
-
-          have d7 : |r| / (|dφ| * (|dφ| / 2)) < ε' / ( dφ ^ 2 / 2) := by
-            have: |dφ| * (|dφ| / 2) = dφ ^ 2 / 2 := by
-              ring
-              simp
-            rw [this]
-            simp
-            rw [div_lt_div_iff_of_pos_right]
-            linarith
-            apply div_pos
-            exact pow_two_pos_of_ne_zero dφ_ne_zero
-            simp
-          have hpos : dφ ^ 2 / 2 > 0 := by
-            apply div_pos
-            exact pow_two_pos_of_ne_zero dφ_ne_zero
-            simp
-
-          have key : |r| / |dφ * (dφ + r)| < ε' / (dφ^2 / 2) := by
-            apply lt_of_lt_of_le' d7 d5
-          have ε'_bound : ε' / (dφ^2 / 2) ≤ (ε * dφ^2 / 2) / (dφ^2 / 2) := by
-            apply (div_le_div_iff_of_pos_right hpos).mpr ε'_le
-          have ε'_simplified : (ε * dφ^2 / 2) / (dφ^2 / 2) = ε := by
-            field_simp [hpos.ne']
-
-          rw [ε'_simplified] at ε'_bound
-          apply lt_of_le_of_lt' ε'_bound key
-
-
-          /-
-          have hf' : deriv φ (ψ y) ≠ 0 := by
+      rw [mul_assoc]
+      have eq_one : deriv φ (ψ y) * deriv ψ y  = 1 := by
+        have res : deriv φ (ψ y) = 1 / deriv ψ y := by
+          have aux : HasDerivAt ψ (deriv φ (ψ y))⁻¹ y := by
+            have hf' : deriv φ (ψ y) ≠ 0 := by
               apply hψ at hy
               apply hφregular at hy
               rw [← norm_ne_zero_iff] at hy
@@ -958,85 +711,99 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
               exact hy
 
 
-          have hfg : ∀ᶠ (y : ℝ) in nhds y, φ (ψ y) = y := by
-            rw [Filter.eventually_iff_exists_mem]
-            sorry
-
-          have hf : HasDerivAt φ (deriv φ (ψ y)) (ψ y) := by
-             have aux : DifferentiableAt ℝ φ (ψ y) := by
-              apply differentiableAt_of_deriv_ne_zero hf'
-             rw [has_der]
-             rw [der_equiv]
-             unfold Myderiv
-             rw [diff] at aux
-             rw [dif_pos]
-             exact Classical.choose_spec aux
-
-          have aux: DifferentiableAt ℝ ψ y := by
-            have ne_zero : deriv ψ y ≠ 0 := by
-              intro h
+            have hfg : ∀ᶠ (y : ℝ) in nhds y, φ (ψ y) = y := by
+              rw [Filter.eventually_iff_exists_mem]
+              let ε : ℝ := min ((y - c)/2) ((d - y)/2)
+              use Ioo (y - ε ) (y + ε )
+              constructor
+              rw [mem_nhds_iff]
+              use Ioo (y - ε ) (y + ε )
+              constructor
+              exact subset_rfl
+              constructor
+              exact isOpen_Ioo
+              simp only [mem_Ioo]
+              have ε_pos : ε > 0 := by
+                unfold ε
+                apply lt_min
+                linarith [hy.1]
+                linarith [hy.2]
+              exact ⟨sub_lt_self y (by positivity), lt_add_of_pos_right y (by positivity)⟩
+              intro z hz
+              apply right_inv
+              rcases hz with ⟨hz_left, hz_right⟩
+              rcases hy with ⟨hy_left, hy_right⟩
+              have le_left : ε <= (y - c)/2 := by
+                unfold ε
+                apply min_le_left
+              have le_right : ε <= (d - y)/2 := by
+                unfold ε
+                apply min_le_right
+              constructor
+              sorry
               sorry
 
-            apply differentiableAt_of_deriv_ne_zero ne_zero
+            have hf : HasDerivAt φ (deriv φ (ψ y)) (ψ y) := by
+              have aux : DifferentiableAt ℝ φ (ψ y) := by
+                apply differentiableAt_of_deriv_ne_zero hf'
+              rw [has_der]
+              rw [der_equiv]
+              unfold Myderiv
+              rw [diff] at aux
+              rw [dif_pos]
+              exact Classical.choose_spec aux
 
-          have hg : ContinuousAt ψ y := by
-            apply DifferentiableAt.continuousAt aux
+            have aux: DifferentiableAt ℝ ψ y := by
+              have ne_zero : deriv ψ y ≠ 0 := by
+                intro h
+                sorry
 
-            /-
-            apply ψ_smooth at hy
-            rw [cont]
-            unfold Mycont
-            intro ε hε
-            sorry
-            -/
+              apply differentiableAt_of_deriv_ne_zero ne_zero
 
+            have hg : ContinuousAt ψ y := by
+              apply DifferentiableAt.continuousAt aux
 
-          apply HasDerivAt.of_local_left_inverse hg hf hf' hfg
-          -/
+            apply HasDerivAt.of_local_left_inverse hg hf hf' hfg
 
+          nth_rewrite 2 [der_equiv]
+          unfold Myderiv
+          rw [has_der] at aux
+          rw [dif_pos]
+          have unique_der : @Classical.choose ℝ (fun x ↦ Myhasder ψ x y) ?hc = (deriv φ (ψ y))⁻¹ := by
+            apply der_unique ψ
+            have h_ex : ∃ f', Myhasder ψ f' y := by
+              use (deriv φ (ψ y))⁻¹
+            exact Classical.choose_spec h_ex
+            exact aux
 
+          rw[unique_der]
+          simp
+          rw [Mydiff]
+          use (deriv φ (ψ y))⁻¹
 
-        nth_rewrite 2 [der_equiv]
-        unfold Myderiv
-        rw [has_der] at aux
-        rw [dif_pos]
-        have unique_der : @Classical.choose ℝ (fun x ↦ Myhasder ψ x y) ?hc = (deriv φ (ψ y))⁻¹ := by
-          apply der_unique ψ
-          have h_ex : ∃ f', Myhasder ψ f' y := by
-            use (deriv φ (ψ y))⁻¹
-          exact Classical.choose_spec h_ex
-          exact aux
+        rw [res]
+        let k : ℝ := deriv ψ y
+        have aux:  k = deriv ψ y := by
+          unfold k
+          rfl
+        have h_ne : k ≠ 0 := by
+          have hy' : ψ y ∈ Ioo a b := by
+            apply hψ at hy
+            exact hy
+          apply hφregular at hy'
+          rw [← norm_ne_zero_iff] at hy'
+          rw [← norm_deriv_eq_norm_fderiv] at hy'
+          rw [Real.norm_eq_abs] at hy'
+          rw [abs_ne_zero] at hy'
+          rw [res] at hy'
+          intro h
+          simp at hy'
+          apply hy'
+          exact h
 
-        rw[unique_der]
-        simp
-        rw [Mydiff]
-        use (deriv φ (ψ y))⁻¹
-
-
-
-      rw [res]
-      let k : ℝ := deriv ψ y
-      have aux:  k = deriv ψ y := by
-        unfold k
-        rfl
-      have h_ne : k ≠ 0 := by
-        have hy' : ψ y ∈ Icc a b := by
-          apply hψ at hy
-          exact hy
-        apply hφregular at hy'
-        rw [← norm_ne_zero_iff] at hy'
-        rw [← norm_deriv_eq_norm_fderiv] at hy'
-        rw [Real.norm_eq_abs] at hy'
-        rw [abs_ne_zero] at hy'
-        rw [res] at hy'
-        intro h
-        simp at hy'
-        apply hy'
-        exact h
-
-      rw [mul_comm,← aux,mul_one_div_cancel]
-      exact h_ne
+        rw [mul_comm,← aux,mul_one_div_cancel]
+        exact h_ne
 
 
-    rw [eq_one]
-    simp
+      rw [eq_one]
+      simp
