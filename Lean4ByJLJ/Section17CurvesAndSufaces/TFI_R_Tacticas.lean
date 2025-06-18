@@ -55,7 +55,9 @@ example : ContDiffOn ℝ ⊤ φ₂ (Set.Icc 0 1) := by
   intro h h1 h2
   exact h1
 
-
+--Esta es la primera versión de prueba, en la que las hipótesis quedan un poco
+--dispersas, posteriormente se ha elaborado una nueva versión más compacta
+--que se encuentra abajo de esta misma.
 
 example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (hcd : c ≤ d)
     (hφ : ∀ x, x ∈ Set.Ioo a b → φ x ∈ Set.Ioo c d)
@@ -205,6 +207,176 @@ example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (h
     constructor
 
     exact ψ_smooth
+
+    intro y hy z
+
+    simp
+
+    have h_id : ∀ y ∈ Ioo c d, φ (ψ y) = id y := by
+        intro y hy
+        apply right_inv
+        exact hy
+    have h_id_deriv : ∀ y ∈ Ioo c d, deriv (φ ∘ ψ) y = deriv id y := by
+      intro y hy
+      apply Filter.EventuallyEq.deriv_eq
+
+      apply Filter.eventuallyEq_of_left_inv_of_right_inv
+
+      rw [eventually_nhds_iff]
+      use Ioo c d
+      constructor
+      intro y hy
+      apply right_inv
+      exact hy
+      constructor
+      apply isOpen_Ioo
+      exact hy
+
+      rw [eventually_nhds_iff]
+      use Ioo c d
+      constructor
+      intro y hy
+      simp
+      constructor
+      apply isOpen_Ioo
+      exact hy
+
+      rw [Filter.tendsto_def]
+      have inv_continuous: ContinuousAt id y := by
+        apply continuousAt_id
+
+      intro s hs
+      exact hs
+
+    have chain_deriv : ∀ y ∈ Ioo c d, deriv (φ ∘ ψ) y = (deriv φ (ψ y)) * (deriv ψ y) := by
+      intro y hy
+      have hφ_diff_at : DifferentiableAt ℝ φ (ψ y) := hφ_diff y hy
+      have hψ_diff_at : DifferentiableAt ℝ ψ y := hψ_diff y hy
+      apply deriv_comp y hφ_diff_at hψ_diff_at
+
+    have h_id_deriv1 : ∀ y ∈ Ioo c d, (deriv φ (ψ y)) * (deriv ψ y) = 1 := by
+      intro y hy
+      rw [← chain_deriv y hy, h_id_deriv y hy]
+      simp
+
+    have deriv_product : deriv φ (ψ y) * deriv ψ y = 1 := h_id_deriv1 y hy
+
+    have asoc: z * deriv φ (ψ y) * deriv ψ y = z * (deriv φ (ψ y) * deriv ψ y) := by
+      rw [mul_assoc]
+
+    rw [asoc]
+    rw [deriv_product]
+    simp
+
+
+
+example (φ : ℝ → ℝ) (ψ : ℝ → ℝ) (a b c d : ℝ) (hab : a ≤ b) (hcd : c ≤ d)
+    (hφ : ∀ x, x ∈ Set.Ioo a b → φ x ∈ Set.Ioo c d)
+    (hψ : ∀ y, y ∈ Set.Ioo c d → ψ y ∈ Set.Ioo a b)
+    (left_inv : ∀ x, x ∈ Set.Ioo a b → ψ (φ x) = x)
+    (right_inv : ∀ y, y ∈ Set.Ioo c d → φ (ψ y) = y)
+    (hφdiff : ContDiffOn ℝ ⊤ φ (Set.Ioo a b))
+    (hφregular : ∀ x, x ∈ Set.Ioo a b → fderiv ℝ φ x ≠ 0) :
+    ContDiffOn ℝ ⊤ ψ (Set.Ioo c d) ∧
+      ∀ y, y ∈ Set.Ioo c d → ∀ z, fderiv ℝ ψ y (fderiv ℝ φ (ψ y) z) = z := by
+
+    have ψ_smooth : ContDiffOn ℝ ⊤ ψ (Ioo c d) := by
+      have open_inter : IsOpen (Ioo c d) := by exact isOpen_Ioo
+      have open_inter' : IsOpen (Ioo a b) := by exact isOpen_Ioo
+      rw [IsOpen.contDiffOn_iff open_inter]
+      rw [IsOpen.contDiffOn_iff open_inter'] at hφdiff
+      intro y hy
+      have hx : ψ y ∈ Ioo a b := hψ y hy
+      specialize hφdiff hx
+
+      have hx_fder_nonzero : fderiv ℝ φ (ψ y) ≠ 0 := by
+          apply hφregular
+          exact hx
+
+      have hφ_deriv_ne_zero: deriv φ (ψ y) ≠ 0 := by
+          rw [←fderiv_deriv]
+          intro h1
+          apply hx_fder_nonzero
+          ext t
+          rw [h1]
+          simp
+
+      let φ' : ℝ ≃L[ℝ] ℝ :=
+          ContinuousLinearEquiv.unitsEquivAut ℝ (Units.mk0 (deriv φ (ψ y) : ℝ) hφ_deriv_ne_zero)
+
+      have hφ_strict_deriv : HasStrictDerivAt φ (deriv φ (ψ y)) (ψ y) := by
+          apply ContDiffAt.hasStrictDerivAt hφdiff
+          simp
+
+      have hf' : HasFDerivAt φ (φ' : ℝ →L[ℝ] ℝ) (ψ y) := by
+        rw [HasFDerivAt]
+        convert hφ_strict_deriv.hasFDerivAt
+
+      have hn : 1 ≤ (⊤ : WithTop ℕ∞)  := by simp
+
+      have local_inv: ψ =ᶠ[nhds (φ (ψ y))] (hφdiff.localInverse hf' hn) := by
+
+          apply Filter.eventuallyEq_of_left_inv_of_right_inv
+          have left_inv_eventually : ∀ᶠ z in nhds (ψ y), ψ (φ z) = z := by
+            rw [eventually_nhds_iff]
+            use Ioo a b
+          exact left_inv_eventually
+
+          apply HasStrictFDerivAt.eventually_right_inverse
+
+          rw [Filter.tendsto_def]
+          have inv_continuous: ContinuousAt (hφdiff.localInverse hf' hn) (φ (ψ y)) := by
+            have hφ_smooth_at_inv : ContDiffAt ℝ ⊤ (hφdiff.localInverse hf' hn)  (φ (ψ y)) := by
+              apply ContDiffAt.to_localInverse
+            apply ContDiffAt.continuousAt at hφ_smooth_at_inv
+            exact hφ_smooth_at_inv
+
+          intro s hs
+
+          have id_x : (hφdiff.localInverse hf' hn) (φ (ψ y)) = ψ y := by
+            apply ContDiffAt.localInverse_apply_image
+
+          rw [← id_x] at hs
+
+          apply ContinuousAt.preimage_mem_nhds
+
+          exact inv_continuous
+          exact hs
+
+      apply right_inv at hy
+      rw [← hy]
+      have inv_theorem := ContDiffAt.to_localInverse hφdiff hf' hn
+      apply ContDiffAt.congr_of_eventuallyEq inv_theorem local_inv
+
+
+    constructor
+    exact ψ_smooth
+    have hψ_diff : ∀ y ∈ Ioo c d, DifferentiableAt ℝ ψ y := by
+        have aux: DifferentiableOn ℝ ψ (Ioo c d) := by
+          apply ψ_smooth.differentiableOn
+          simp
+        intro y hy
+        apply aux.differentiableAt
+        rw [mem_nhds_iff]
+        use Ioo c d
+        constructor
+        exact subset_refl (Ioo c d)
+        constructor
+        exact isOpen_Ioo
+        exact hy
+
+    have hφ_diff : ∀ y ∈ Ioo c d, DifferentiableAt ℝ φ (ψ y) := by
+      intro y hy
+      apply differentiableAt_of_deriv_ne_zero
+      have hx_fder_nonzero : fderiv ℝ φ (ψ y) ≠ 0 := by
+        apply hφregular
+        apply hψ y hy
+      rw [←fderiv_deriv]
+      intro h1
+      apply hx_fder_nonzero
+      ext t
+      rw [h1]
+      simp
 
     intro y hy z
 
